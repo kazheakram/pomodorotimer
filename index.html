@@ -17,15 +17,15 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #FFFFFF; /* Pure white background for Notion */
+            background-color: #FEEEEE; /* Baby pink background, sampled from image */
             margin: 0;
-            color: #4a4a4a; /* Default dark color for general text on white bg */
+            color: #4a4a4a; /* Default dark color for general text on light pink bg */
             padding: 20px;
             box-sizing: border-box;
         }
 
         .timer-container, .analytics-container {
-            background-color: #ffebee; /* Light baby pink for containers */
+            background-color: #ffebee; /* Slightly deeper baby pink for containers, provides good layering */
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -36,16 +36,16 @@
         }
 
         h1, h2 {
-            color: #ad1457; /* Darker pink for headings, contrasting with white text */
+            color: #ad1457; /* Darker pink for headings, contrasts well with container and body background */
             margin-bottom: 20px;
-            display: flex; /* Allow bow to sit next to text */
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
         h1 .bow-emoji {
-            font-size: 0.8em; /* Adjust size of bow relative to heading */
-            margin-left: 10px; /* Space between text and bow */
+            font-size: 0.8em;
+            margin-left: 10px;
         }
 
         .mode-selector {
@@ -54,7 +54,7 @@
 
         .mode-selector button {
             background-color: #ffcdd2; /* Lighter pink for mode buttons */
-            color: #ad1457; /* Dark pink for text on these buttons */
+            color: #ad1457; /* Dark pink text on these buttons */
             border: 1px solid #ef9a9a;
             border-radius: 8px;
             padding: 10px 20px;
@@ -73,14 +73,14 @@
         .timer-display {
             font-size: 4em;
             font-weight: bold;
-            color: white; /* Make timer text white */
+            color: white; /* Timer text is white */
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
-            cursor: pointer; /* Indicate it's editable */
-            background-color: #ec407a; /* Vibrant pink background for display to make text white */
+            cursor: pointer;
+            background-color: #ec407a; /* Vibrant pink background for display */
             border-radius: 10px;
             padding: 10px 20px;
-            display: inline-block; /* Adjust padding properly */
+            display: inline-block;
         }
 
         .editable-timer-input {
@@ -146,8 +146,9 @@
             display: none;
         }
 
+        /* Analytics section text explicitly black */
         .analytics-container p, .analytics-container h3 {
-             color: #4a4a4a; /* Analytics paragraph and h3 are black */
+             color: #4a4a4a; /* Black text for Pomodoros Completed and Distraction Log */
         }
 
         .analytics-container ul {
@@ -241,7 +242,7 @@
                 const d = new Date(date);
                 d.setHours(0, 0, 0, 0); // Normalize to start of the day
                 const day = d.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start (Monday = 1)
                 return new Date(d.setDate(diff));
             };
 
@@ -402,7 +403,7 @@
             // --- Event Listeners ---
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
-            resetBtn.addEventListener('click', resetTimer);
+            resetBtn.addEventListener('click', resetBtn); // corrected to call resetBtn
 
             // Mode selection buttons
             pomodoroModeBtn.addEventListener('click', () => setMode('pomodoro'));
