@@ -17,7 +17,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #FEEEEE; /* Baby pink background, sampled from image */
+            background-color: #FEEEEE; /* Overall page background is baby pink */
             margin: 0;
             color: #4a4a4a; /* Default dark color for general text on light pink bg */
             padding: 20px;
@@ -25,7 +25,7 @@
         }
 
         .timer-container, .analytics-container {
-            background-color: #ffebee; /* Slightly deeper baby pink for containers, provides good layering */
+            background-color: #FFFFFF; /* Widget background is WHITE */
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -36,7 +36,7 @@
         }
 
         h1, h2 {
-            color: #ad1457; /* Darker pink for headings, contrasts well with container and body background */
+            color: #ad1457; /* Darker pink for headings, contrasts well */
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -403,7 +403,7 @@
             // --- Event Listeners ---
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
-            resetBtn.addEventListener('click', resetBtn); // corrected to call resetBtn
+            resetBtn.addEventListener('click', resetTimer);
 
             // Mode selection buttons
             pomodoroModeBtn.addEventListener('click', () => setMode('pomodoro'));
