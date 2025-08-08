@@ -234,6 +234,17 @@
             let distractionReasons = [];
             let currentSessionDistracted = false;
 
+            // --- Helper Function to Get Monday of Current Week ---
+            // This function calculates the date of the Monday of the week
+            // containing the given date. It's used to determine if a new week has started.
+            const getMondayOfCurrentWeek = (date) => {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0); // Normalize to start of the day
+                const day = d.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
+                return new Date(d.setDate(diff));
+            };
+
             // --- Mode Switching Functions ---
             const setMode = (mode) => {
                 currentMode = mode;
@@ -261,21 +272,38 @@
             const loadAnalytics = () => {
                 const storedPomodoros = localStorage.getItem('pomodorosCompleted');
                 const storedDistractions = localStorage.getItem('distractionReasons');
+                const lastResetWeekStart = localStorage.getItem('lastDistractionResetWeekStart');
 
                 if (storedPomodoros) {
                     pomodorosCompleted = parseInt(storedPomodoros, 10);
                     pomodorosCompletedSpan.textContent = pomodorosCompleted;
                 }
 
-                if (storedDistractions) {
+                // Determine the Monday of the current week
+                const today = new Date();
+                const currentMonday = getMondayOfCurrentWeek(today);
+                const currentMondayISO = currentMonday.toISOString().slice(0, 10); // Format as YYYY-MM-DD
+
+                // Check if it's a new week for distraction log reset
+                if (!lastResetWeekStart || currentMondayISO > lastResetWeekStart) {
+                    // It's a new week or the first time loading, reset distractions
+                    distractionReasons = [];
+                    localStorage.setItem('lastDistractionResetWeekStart', currentMondayISO);
+                    saveAnalytics(); // Save the empty distraction log and new reset date
+                } else if (storedDistractions) {
+                    // Same week, load existing distractions
                     distractionReasons = JSON.parse(storedDistractions);
-                    renderDistractionLog();
                 }
+                renderDistractionLog();
             };
 
             const saveAnalytics = () => {
                 localStorage.setItem('pomodorosCompleted', pomodorosCompleted);
                 localStorage.setItem('distractionReasons', JSON.stringify(distractionReasons));
+                // Ensure the last reset date is always updated when analytics are saved
+                const today = new Date();
+                const currentMonday = getMondayOfCurrentWeek(today);
+                localStorage.setItem('lastDistractionResetWeekStart', currentMonday.toISOString().slice(0, 10));
             };
 
             const renderDistractionLog = () => {
@@ -297,8 +325,12 @@
                 if (confirm('Are you sure you want to clear all analytics data? This cannot be undone.')) {
                     pomodorosCompleted = 0;
                     distractionReasons = [];
-                    saveAnalytics();
-                    loadAnalytics();
+                    // When manually clearing, also update the last reset week to now
+                    const today = new Date();
+                    const currentMonday = getMondayOfCurrentWeek(today);
+                    localStorage.setItem('lastDistractionResetWeekStart', currentMonday.toISOString().slice(0, 10));
+                    saveAnalytics(); // Save the cleared state
+                    loadAnalytics(); // Reload to update display
                 }
             };
 
