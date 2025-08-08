@@ -3,40 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Pink Pomodoro & Stopwatch</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@404&display=swap" rel="stylesheet">
+    <title>Custom Pomodoro & Stopwatch</title>
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
     <style>
         /*
-        * CSS Styles for the Baby Pink Aesthetic
+        * CSS Styles for the Custom Pomodoro Timer
         */
         body {
-            font-family: 'Poppins', sans-serif; /* Applied Poppins font */
+            font-family: 'Poppins', sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #fce4ec; /* Light baby pink background */
+            background-color: #FFFFFF; /* Pure white background for Notion */
             margin: 0;
-            color: #4a4a4a;
-            padding: 20px; /* Add some padding for smaller screens */
-            box-sizing: border-box; /* Include padding in element's total width and height */
+            color: #4a4a4a; /* Default dark color for general text on white bg */
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .timer-container, .analytics-container {
-            background-color: #ffebee; /* Slightly deeper baby pink for containers */
+            background-color: #ffebee; /* Light baby pink for containers */
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin: 20px 0; /* Adjust margin for single column layout */
-            width: 100%; /* Full width within padding */
-            max-width: 500px; /* Max width for larger screens */
+            margin: 20px 0;
+            width: 100%;
+            max-width: 500px;
         }
 
         h1, h2 {
-            color: #ad1457; /* Darker pink for headings */
+            color: #ad1457; /* Darker pink for headings, contrasting with white text */
             margin-bottom: 20px;
+            display: flex; /* Allow bow to sit next to text */
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 .bow-emoji {
+            font-size: 0.8em; /* Adjust size of bow relative to heading */
+            margin-left: 10px; /* Space between text and bow */
         }
 
         .mode-selector {
@@ -45,7 +54,7 @@
 
         .mode-selector button {
             background-color: #ffcdd2; /* Lighter pink for mode buttons */
-            color: #ad1457;
+            color: #ad1457; /* Dark pink for text on these buttons */
             border: 1px solid #ef9a9a;
             border-radius: 8px;
             padding: 10px 20px;
@@ -58,20 +67,38 @@
         .mode-selector button.active,
         .mode-selector button:hover {
             background-color: #ff80ab; /* Medium pink on active/hover */
-            color: white;
+            color: white; /* White text on active/hover */
         }
 
         .timer-display {
             font-size: 4em;
             font-weight: bold;
-            color: #ec407a; /* Vibrant pink for the timer */
+            color: white; /* Make timer text white */
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer; /* Indicate it's editable */
+            background-color: #ec407a; /* Vibrant pink background for display to make text white */
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: inline-block; /* Adjust padding properly */
+        }
+
+        .editable-timer-input {
+            width: 150px;
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #ff80ab;
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: #ec407a; /* Input text color */
+            background-color: #fff; /* Input background */
+            margin-bottom: 30px;
         }
 
         .controls button {
             background-color: #ff80ab; /* Medium pink for general control buttons */
-            color: white;
+            color: white; /* White text on control buttons */
             border: none;
             border-radius: 8px;
             padding: 12px 25px;
@@ -96,25 +123,35 @@
         }
 
         #distraction-prompt input {
-            width: calc(100% - 20px); /* Account for padding */
+            width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ff80ab;
             border-radius: 5px;
             font-size: 1em;
+            color: #4a4a4a; /* Input text color remains dark for readability */
+            background-color: #fff; /* Input background remains white for readability */
         }
 
         #distraction-prompt button {
-            background-color: #6a1b9a; /* A contrasting color for submit */
-            color: white;
+            background-color: #ff80ab; /* Pink for submit distraction button */
+            color: white; /* White text on submit button */
         }
 
         #distraction-prompt button:hover {
-            background-color: #4a148c;
+            background-color: #ff4081; /* Darker pink on hover */
         }
 
         .hidden {
             display: none;
+        }
+
+        .analytics-container {
+             color: white; /* Analytics container text white */
+        }
+
+        .analytics-container p, .analytics-container h3 {
+             color: white; /* Ensure paragraph and h3 are white */
         }
 
         .analytics-container ul {
@@ -128,19 +165,24 @@
             padding: 10px;
             border-radius: 5px;
             font-size: 0.95em;
-            color: #4a4a4a;
-            word-wrap: break-word; /* Ensure long reasons wrap */
+            color: #4a4a4a; /* List item text remains dark for readability on light pink background */
+            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
     <div class="timer-container">
-        <h1>Focus Timer</h1>
+        <h1>Focus Timer <span class="bow-emoji">🎀</span></h1>
         <div class="mode-selector">
             <button id="pomodoro-mode-btn" class="active">Pomodoro</button>
             <button id="stopwatch-mode-btn">Stopwatch</button>
         </div>
-        <div id="timer-display" class="timer-display">25:00</div>
+        <!-- Editable Pomodoro Display -->
+        <div id="pomodoro-display-wrapper">
+            <div id="timer-display" class="timer-display">25:00</div>
+            <input type="number" id="editable-pomodoro-input" class="editable-timer-input hidden" min="1" max="60" value="25">
+        </div>
+
         <div class="controls">
             <button id="start-btn">Start</button>
             <button id="pause-btn">Pause</button>
@@ -158,7 +200,8 @@
         <p>Pomodoros Completed: <span id="pomodoros-completed">0</span></p>
         <h3>Distraction Log:</h3>
         <ul id="distraction-log">
-            </ul>
+            <!-- Distraction reasons will be listed here -->
+        </ul>
         <button id="clear-analytics">Clear Analytics</button>
     </div>
 
@@ -168,6 +211,9 @@
         */
         document.addEventListener('DOMContentLoaded', () => {
             const timerDisplay = document.getElementById('timer-display');
+            const editablePomodoroInput = document.getElementById('editable-pomodoro-input');
+            const pomodoroDisplayWrapper = document.getElementById('pomodoro-display-wrapper');
+
             const startBtn = document.getElementById('start-btn');
             const pauseBtn = document.getElementById('pause-btn');
             const resetBtn = document.getElementById('reset-btn');
@@ -184,28 +230,34 @@
 
             let timerInterval;
             let currentMode = 'pomodoro'; // 'pomodoro' or 'stopwatch'
-            let pomodoroSeconds = 25 * 60; // Initial Pomodoro time
-            let stopwatchSeconds = 0; // Initial Stopwatch time
+            let pomodoroDurationMinutes = parseInt(localStorage.getItem('pomodoroDuration') || '25', 10);
+            let pomodoroSeconds = pomodoroDurationMinutes * 60;
+            let stopwatchSeconds = 0;
             let isPaused = true;
             let pomodorosCompleted = 0;
             let distractionReasons = [];
-            let currentSessionDistracted = false; // To track distraction for "Good job, Kazhe!" message
+            let currentSessionDistracted = false;
 
             // --- Mode Switching Functions ---
             const setMode = (mode) => {
                 currentMode = mode;
-                resetTimer(); // Reset timer when switching modes
+                resetTimer();
                 pomodoroModeBtn.classList.remove('active');
                 stopwatchModeBtn.classList.remove('active');
 
                 if (mode === 'pomodoro') {
                     pomodoroModeBtn.classList.add('active');
-                    timerDisplay.textContent = formatTime(pomodoroSeconds);
-                    distractedBtn.style.display = 'inline-block'; // Show "I got distracted"
+                    distractedBtn.style.display = 'inline-block';
+                    pomodoroDisplayWrapper.classList.remove('hidden');
+                    editablePomodoroInput.classList.add('hidden');
+                    timerDisplay.classList.remove('hidden');
+                    timerDisplay.textContent = formatTime(pomodoroDurationMinutes * 60);
                 } else { // stopwatch
                     stopwatchModeBtn.classList.add('active');
+                    distractedBtn.style.display = 'none';
+                    editablePomodoroInput.classList.add('hidden');
+                    timerDisplay.classList.remove('hidden');
                     timerDisplay.textContent = formatTime(stopwatchSeconds);
-                    distractedBtn.style.display = 'none'; // Hide "I got distracted" for stopwatch
                 }
             };
 
@@ -231,7 +283,7 @@
             };
 
             const renderDistractionLog = () => {
-                distractionLogUl.innerHTML = ''; // Clear current log
+                distractionLogUl.innerHTML = '';
                 if (distractionReasons.length === 0) {
                     const li = document.createElement('li');
                     li.textContent = 'No distractions logged yet. Stay focused!';
@@ -249,8 +301,8 @@
                 if (confirm('Are you sure you want to clear all analytics data? This cannot be undone.')) {
                     pomodorosCompleted = 0;
                     distractionReasons = [];
-                    saveAnalytics(); // Save the cleared state
-                    loadAnalytics(); // Reload to update display
+                    saveAnalytics();
+                    loadAnalytics();
                 }
             };
 
@@ -270,32 +322,34 @@
             };
 
             const startTimer = () => {
-                if (!isPaused) return; // Prevent multiple intervals if already running
+                if (!isPaused) return;
                 isPaused = false;
+                editablePomodoroInput.classList.add('hidden');
+                timerDisplay.classList.remove('hidden');
+
                 timerInterval = setInterval(() => {
                     if (currentMode === 'pomodoro') {
                         if (pomodoroSeconds > 0) {
                             pomodoroSeconds--;
                         } else {
-                            // Pomodoro finished
                             clearInterval(timerInterval);
                             isPaused = true;
                             pomodorosCompleted++;
                             saveAnalytics();
-                            loadAnalytics(); // Update pomodoro count display
+                            loadAnalytics();
 
                             if (!currentSessionDistracted) {
-                                alert('Good job, Kazhe!'); // Personalized message!
+                                alert('Good job, Kazhe!');
                             } else {
                                 alert('Pomodoro complete! Time for a short break.');
                             }
-                            resetTimer(); // Reset for next pomodoro session
+                            resetTimer();
                         }
                     } else { // stopwatch mode
-                        stopwatchSeconds++; // Stopwatch counts up
+                        stopwatchSeconds++;
                     }
                     updateTimerDisplay();
-                }, 1000); // Update every second
+                }, 1000);
             };
 
             const pauseTimer = () => {
@@ -304,17 +358,17 @@
             };
 
             const resetTimer = () => {
-                pauseTimer(); // Ensure timer is stopped
+                pauseTimer();
                 if (currentMode === 'pomodoro') {
-                    pomodoroSeconds = 25 * 60; // Reset to 25 minutes
+                    pomodoroSeconds = pomodoroDurationMinutes * 60;
                 } else { // stopwatch
-                    stopwatchSeconds = 0; // Reset to 0
+                    stopwatchSeconds = 0;
                 }
                 updateTimerDisplay();
-                isPaused = true; // Set to paused state
-                distractionPrompt.classList.add('hidden'); // Hide prompt
-                distractionReasonInput.value = ''; // Clear input field
-                currentSessionDistracted = false; // Reset distraction tracker for new session
+                isPaused = true;
+                distractionPrompt.classList.add('hidden');
+                distractionReasonInput.value = '';
+                currentSessionDistracted = false;
             };
 
             // --- Event Listeners ---
@@ -326,25 +380,57 @@
             pomodoroModeBtn.addEventListener('click', () => setMode('pomodoro'));
             stopwatchModeBtn.addEventListener('click', () => setMode('stopwatch'));
 
-            // Handles "I got distracted" button click
-            distractedBtn.addEventListener('click', () => {
-                if (currentMode === 'pomodoro') { // Only applicable in Pomodoro mode
-                    pauseTimer(); // Pause timer immediately
-                    distractionPrompt.classList.remove('hidden'); // Show the prompt
-                    distractionReasonInput.focus(); // Focus input for quick typing
-                    currentSessionDistracted = true; // Mark session as distracted
+            // Make Pomodoro time editable on click
+            timerDisplay.addEventListener('click', () => {
+                if (currentMode === 'pomodoro' && isPaused) {
+                    timerDisplay.classList.add('hidden');
+                    editablePomodoroInput.classList.remove('hidden');
+                    editablePomodoroInput.value = pomodoroDurationMinutes;
+                    editablePomodoroInput.focus();
                 }
             });
 
-            // Handles submission of the distraction reason
+            // Save new Pomodoro duration when input changes or loses focus
+            editablePomodoroInput.addEventListener('change', () => {
+                const newDuration = parseInt(editablePomodoroInput.value, 10);
+                if (newDuration >= 1 && newDuration <= 60) {
+                    pomodoroDurationMinutes = newDuration;
+                    localStorage.setItem('pomodoroDuration', pomodoroDurationMinutes);
+                    pomodoroSeconds = pomodoroDurationMinutes * 60;
+                    updateTimerDisplay();
+                } else {
+                    alert('Please enter a Pomodoro duration between 1 and 60 minutes.');
+                    editablePomodoroInput.value = pomodoroDurationMinutes;
+                }
+                editablePomodoroInput.classList.add('hidden');
+                timerDisplay.classList.remove('hidden');
+            });
+
+            // Also hide input if clicked outside (blur)
+            editablePomodoroInput.addEventListener('blur', () => {
+                 editablePomodoroInput.classList.add('hidden');
+                 timerDisplay.classList.remove('hidden');
+                 updateTimerDisplay();
+            });
+
+
+            distractedBtn.addEventListener('click', () => {
+                if (currentMode === 'pomodoro') {
+                    pauseTimer();
+                    distractionPrompt.classList.remove('hidden');
+                    distractionReasonInput.focus();
+                    currentSessionDistracted = true;
+                }
+            });
+
             submitDistractionBtn.addEventListener('click', () => {
                 const reason = distractionReasonInput.value.trim();
                 if (reason) {
-                    distractionReasons.push(reason); // Add reason to array
-                    saveAnalytics(); // Save updated reasons
-                    renderDistractionLog(); // Update display
-                    distractionReasonInput.value = ''; // Clear input
-                    distractionPrompt.classList.add('hidden'); // Hide prompt
+                    distractionReasons.push(reason);
+                    saveAnalytics();
+                    renderDistractionLog();
+                    distractionReasonInput.value = '';
+                    distractionPrompt.classList.add('hidden');
                 } else {
                     alert('Please enter a reason for distraction.');
                 }
@@ -353,8 +439,9 @@
             clearAnalyticsBtn.addEventListener('click', clearAnalytics);
 
             // --- Initial Setup on Page Load ---
-            setMode('pomodoro'); // Start in Pomodoro mode by default
-            loadAnalytics(); // Load any previously saved data
+            setMode('pomodoro');
+            loadAnalytics();
+            updateTimerDisplay();
         });
     </script>
 </body>
