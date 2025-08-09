@@ -1,325 +1,377 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="https://placehold.co/32x32/FFC0CB/FFFFFF?text=P" /> <!-- Pink 'P' icon -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta
+    name="description"
+    content="Aesthetic Pomodoro Timer with distraction and study logs."
+  />
+  <link rel="apple-touch-icon" href="https://placehold.co/180x180/FFC0CB/FFFFFF?text=P" />
+  <title>Aesthetic Pomodoro Timer</title>
 
-// Main App component for the Aesthetic Pomodoro Timer
-const App = () => {
-  // State to manage the duration of a study session (in minutes)
-  const [studyDuration, setStudyDuration] = useState(25);
-  // State to manage the duration of a break session (in minutes)
-  const [breakDuration, setBreakDuration] = useState(5);
-  // State to track the remaining time in seconds for the current session
-  const [timeLeft, setTimeLeft] = useState(studyDuration * 60);
-  // State to control whether the timer is currently running or paused
-  const [isRunning, setIsRunning] = useState(false);
-  // State to indicate if the current session is a study session (true) or a break (false)
-  const [isStudyMode, setIsStudyMode] = useState(true);
+  <!-- Tailwind CSS CDN for easy styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  // New state for distraction logging
-  const [distractions, setDistractions] = useState([]);
-  // New state for total hours studied
-  const [hoursStudied, setHoursStudied] = useState(0);
-  // State to control visibility of the distraction input field
-  const [showDistractionInput, setShowDistractionInput] = useState(false);
-  // State for the reason of distraction input
-  const [distractionReason, setDistractionReason] = useState('');
+  <!-- React and ReactDOM CDNs -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel CDN for JSX transformation in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  // Helper function to get the Sunday of the current week (for weekly reset)
-  const getSundayOfCurrentWeek = (d) => {
-    d = new Date(d); // Create a new Date object to avoid modifying the original
-    const day = d.getDay(); // Get the current day of the week (0 for Sunday, 1 for Monday, etc.)
-    // Calculate the difference to Sunday. If current day is Sunday (0), use current date.
-    // Otherwise, subtract 'day' days to get the previous Sunday.
-    const diff = d.getDate() - day;
-    const sunday = new Date(d.setDate(diff));
-    // Set hours, minutes, seconds, milliseconds to 0 to ensure consistent comparison
-    sunday.setHours(0, 0, 0, 0);
-    return sunday;
-  };
-
-  // useEffect hook to load data from localStorage and handle weekly reset
-  useEffect(() => {
-    // Attempt to load saved data from localStorage
-    const storedDistractions = JSON.parse(localStorage.getItem('pomodoroDistractions') || '[]');
-    const storedHoursStudied = parseFloat(localStorage.getItem('pomodoroHoursStudied') || '0');
-    const lastResetSundayDateStr = localStorage.getItem('pomodoroLastResetSunday'); // Updated key
-
-    // Get the Sunday of the current week
-    const currentSunday = getSundayOfCurrentWeek(new Date());
-    const currentSundayStr = currentSunday.toISOString().split('T')[0]; // Format as YYYY-MM-DD for comparison
-
-    // Check if it's a new week since the last reset
-    if (lastResetSundayDateStr !== currentSundayStr) { // Compare with updated key
-      // It's a new week, so reset the logs
-      setDistractions([]);
-      setHoursStudied(0);
-      // Update localStorage with empty logs and the new reset date
-      localStorage.setItem('pomodoroDistractions', '[]');
-      localStorage.setItem('pomodoroHoursStudied', '0');
-      localStorage.setItem('pomodoroLastResetSunday', currentSundayStr); // Updated key
-    } else {
-      // Same week, load the saved data
-      setDistractions(storedDistractions);
-      setHoursStudied(storedHoursStudied);
+  <style>
+    /* Apply Inter font family and antialiased smoothing for better text rendering */
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: white; /* Ensure consistent white background */
     }
-  }, []); // Empty dependency array means this effect runs only once on component mount
-
-  // useEffect to save distractions to localStorage whenever 'distractions' state changes
-  useEffect(() => {
-    localStorage.setItem('pomodoroDistractions', JSON.stringify(distractions));
-  }, [distractions]);
-
-  // useEffect to save hoursStudied to localStorage whenever 'hoursStudied' state changes
-  useEffect(() => {
-    localStorage.setItem('pomodoroHoursStudied', hoursStudied.toString());
-  }, [hoursStudied]);
-
-  // useEffect hook to manage the timer countdown logic
-  useEffect(() => {
-    let interval; // Variable to hold the setInterval ID
-
-    // If the timer is running and there's time left
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prevTime => prevTime - 1); // Decrement time every second
-      }, 1000);
-    } else if (timeLeft === 0) { // If time runs out
-      clearInterval(interval); // Stop the current interval
-      setIsRunning(false); // Pause the timer
-
-      // If a study session just completed, log the hours
-      if (isStudyMode) {
-        setHoursStudied(prevHours => prevHours + (studyDuration / 60)); // Add study duration in hours
-      }
-      setIsStudyMode(prevMode => !prevMode); // Toggle between study and break mode
+    #root {
+        width: 100%; /* Ensure root takes full width for centering */
+        display: flex;
+        justify-content: center;
     }
+  </style>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
 
-    // Cleanup function: Clear the interval when the component unmounts
-    // or when the dependencies (isRunning, timeLeft, isStudyMode, studyDuration) change,
-    // ensuring no memory leaks or multiple intervals running.
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, isStudyMode, studyDuration]); // Dependencies: Effect re-runs if these states change
+  <script type="text/babel">
+    const { useState, useEffect } = React; // Destructure useState and useEffect from React
 
-  // useEffect hook to reset the time left when the mode changes or durations are updated
-  useEffect(() => {
-    // Only reset if the timer is not currently running
-    // This prevents altering a session mid-countdown if durations are adjusted
-    if (!isRunning) {
-      setTimeLeft(isStudyMode ? studyDuration * 60 : breakDuration * 60);
-    }
-  }, [isStudyMode, studyDuration, breakDuration, isRunning]); // Added isRunning to dependencies to handle manual reset correctly
+    // Main App component for the Aesthetic Pomodoro Timer
+    const App = () => {
+      // State to manage the duration of a study session (in minutes)
+      const [studyDuration, setStudyDuration] = useState(25);
+      // State to manage the duration of a break session (in minutes)
+      const [breakDuration, setBreakDuration] = useState(5);
+      // State to track the remaining time in seconds for the current session
+      const [timeLeft, setTimeLeft] = useState(studyDuration * 60);
+      // State to control whether the timer is currently running or paused
+      const [isRunning, setIsRunning] = useState(false);
+      // State to indicate if the current session is a study session (true) or a break (false)
+      const [isStudyMode, setIsStudyMode] = useState(true);
 
-  // Function to start the timer
-  const startTimer = () => setIsRunning(true);
-  // Function to pause the timer
-  const pauseTimer = () => setIsRunning(false);
-  // Function to reset the timer to initial study mode settings
-  const resetTimer = () => {
-    setIsRunning(false); // Stop the timer
-    setIsStudyMode(true); // Set mode back to study
-    setTimeLeft(studyDuration * 60); // Reset time to study duration
-    setShowDistractionInput(false); // Hide distraction input if visible
-    setDistractionReason(''); // Clear distraction reason
-  };
+      // New state for distraction logging
+      const [distractions, setDistractions] = useState([]);
+      // New state for total hours studied
+      const [hoursStudied, setHoursStudied] = useState(0);
+      // State to control visibility of the distraction input field
+      const [showDistractionInput, setShowDistractionInput] = useState(false);
+      // State for the reason of distraction input
+      const [distractionReason, setDistractionReason] = useState('');
 
-  // Utility function to format seconds into MM:SS (Minutes:Seconds) string
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60); // Calculate minutes
-    const remainingSeconds = seconds % 60; // Calculate remaining seconds
-    // Return formatted string, adding leading zeros if numbers are less than 10
-    return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
+      // Helper function to get the Sunday of the current week (for weekly reset)
+      const getSundayOfCurrentWeek = (d) => {
+        d = new Date(d); // Create a new Date object to avoid modifying the original
+        const day = d.getDay(); // Get the current day of the week (0 for Sunday, 1 for Monday, etc.)
+        // Calculate the difference to Sunday. If current day is Sunday (0), use current date.
+        // Otherwise, subtract 'day' days to get the previous Sunday.
+        const diff = d.getDate() - day;
+        const sunday = new Date(d.setDate(diff));
+        // Set hours, minutes, seconds, milliseconds to 0 to ensure consistent comparison
+        sunday.setHours(0, 0, 0, 0);
+        return sunday;
+      };
 
-  // Bow SVG icon component for aesthetic touches
-  const BowIcon = () => (
-    <svg className="w-6 h-6 inline-block mb-1 text-rose-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 12c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 2c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5zM4 12c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm16 0c2.209 0 4-1.791 4-4s-1.791-4-4-4-4 1.791-4 4 1.791 4 4 4z"/>
-    </svg>
-  );
+      // useEffect hook to load data from localStorage and handle weekly reset
+      useEffect(() => {
+        // Attempt to load saved data from localStorage
+        const storedDistractions = JSON.parse(localStorage.getItem('pomodoroDistractions') || '[]');
+        const storedHoursStudied = parseFloat(localStorage.getItem('pomodoroHoursStudied') || '0');
+        const lastResetSundayDateStr = localStorage.getItem('pomodoroLastResetSunday'); // Updated key
 
-  // Handler for "I got distracted" button click
-  const handleDistractionClick = () => {
-    setIsRunning(false); // Pause the timer
-    setShowDistractionInput(true); // Show the input field for distraction reason
-  };
+        // Get the Sunday of the current week
+        const currentSunday = getSundayOfCurrentWeek(new Date());
+        const currentSundayStr = currentSunday.toISOString().split('T')[0]; // Format as YYYY-MM-DD for comparison
 
-  // Handler for submitting the distraction reason
-  const handleDistractionSubmit = () => {
-    if (distractionReason.trim()) {
-      setDistractions(prev => [
-        ...prev,
-        {
-          id: Date.now(), // Unique ID for key prop
-          timestamp: new Date().toLocaleString(), // Current date and time
-          reason: distractionReason.trim(), // Trim whitespace from reason
+        // Check if it's a new week since the last reset
+        if (lastResetSundayDateStr !== currentSundayStr) { // Compare with updated key
+          // It's a new week, so reset the logs
+          setDistractions([]);
+          setHoursStudied(0);
+          // Update localStorage with empty logs and the new reset date
+          localStorage.setItem('pomodoroDistractions', '[]');
+          localStorage.setItem('pomodoroHoursStudied', '0');
+          localStorage.setItem('pomodoroLastResetSunday', currentSundayStr); // Updated key
+        } else {
+          // Same week, load the saved data
+          setDistractions(storedDistractions);
+          setHoursStudied(storedHoursStudied);
         }
-      ]);
-      setDistractionReason(''); // Clear the input field
-      setShowDistractionInput(false); // Hide the input field
-    }
-  };
+      }, []); // Empty dependency array means this effect runs only once on component mount
 
-  return (
-    // Main container for the widget, ensuring it's centered on a white background.
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 font-sans antialiased">
-      {/* Widget card with baby pink background, rounded corners, and shadow */}
-      <div className="bg-pink-50 p-6 md:p-8 rounded-3xl shadow-xl max-w-sm w-full border border-pink-200">
-        {/* Header section with a bow icon and title */}
-        <div className="flex flex-col items-center mb-6">
-          <BowIcon /> {/* Render the BowIcon component */}
-          <h1 className="text-3xl md:text-4xl font-bold text-pink-700 text-center mt-2">
-            Pomodoro Timer
-          </h1>
-          <p className="text-pink-500 text-lg mt-1 text-center">Focus & Flourish</p>
-          <div className="w-24 h-1 bg-pink-300 rounded-full mt-3"></div> {/* Decorative line */}
-        </div>
+      // useEffect to save distractions to localStorage whenever 'distractions' state changes
+      useEffect(() => {
+        localStorage.setItem('pomodoroDistractions', JSON.stringify(distractions));
+      }, [distractions]);
 
-        {/* Timer display section */}
-        <div className="bg-white p-6 rounded-2xl shadow-inner border border-pink-100 mb-6 text-center">
-          <p className="text-pink-600 text-2xl font-semibold mb-2">
-            {isStudyMode ? 'Study Session' : 'Break Time'} {/* Display current mode */}
-          </p>
-          <p className="text-pink-800 text-6xl font-extrabold tracking-tight">
-            {formatTime(timeLeft)} {/* Display formatted time left */}
-          </p>
-        </div>
+      // useEffect to save hoursStudied to localStorage whenever 'hoursStudied' state changes
+      useEffect(() => {
+        localStorage.setItem('pomodoroHoursStudied', hoursStudied.toString());
+      }, [hoursStudied]);
 
-        {/* Control buttons (Start, Pause, Reset, Distracted) */}
-        <div className="flex flex-wrap justify-center gap-4 mb-6">
-          <button
-            onClick={startTimer}
-            disabled={isRunning && timeLeft > 0} // Disable if already running and time left
-            className="bg-rose-500 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-rose-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Start
-          </button>
-          <button
-            onClick={pauseTimer}
-            disabled={!isRunning || timeLeft === 0} // Disable if not running or time is 0
-            className="bg-pink-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-pink-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Pause
-          </button>
-          <button
-            onClick={resetTimer}
-            className="bg-fuchsia-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-fuchsia-500 transition-colors duration-200"
-          >
-            Reset
-          </button>
-          {/* "I got distracted" button - only visible during study mode and when running */}
-          {isRunning && isStudyMode && (
-            <button
-              onClick={handleDistractionClick}
-              className="bg-purple-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-purple-500 transition-colors duration-200"
-            >
-              I got distracted!
-            </button>
-          )}
-        </div>
+      // useEffect hook to manage the timer countdown logic
+      useEffect(() => {
+        let interval; // Variable to hold the setInterval ID
 
-        {/* Distraction input field (conditionally rendered) */}
-        {showDistractionInput && (
-          <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
-            <h3 className="text-lg font-semibold text-pink-700 mb-2 text-center">Why did you get distracted?</h3>
-            <div className="flex flex-col gap-2">
-              <input
-                type="text"
-                placeholder="E.g., Checked social media, Noticed a noise"
-                value={distractionReason}
-                onChange={(e) => setDistractionReason(e.target.value)}
-                onKeyPress={(e) => { // Allow submitting with Enter key
-                  if (e.key === 'Enter') handleDistractionSubmit();
-                }}
-                className="p-3 rounded-lg border border-pink-300 text-pink-800 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
+        // If the timer is running and there's time left
+        if (isRunning && timeLeft > 0) {
+          interval = setInterval(() => {
+            setTimeLeft(prevTime => prevTime - 1); // Decrement time every second
+          }, 1000);
+        } else if (timeLeft === 0) { // If time runs out
+          clearInterval(interval); // Stop the current interval
+          setIsRunning(false); // Pause the timer
+
+          // If a study session just completed, log the hours
+          if (isStudyMode) {
+            setHoursStudied(prevHours => prevHours + (studyDuration / 60)); // Add study duration in hours
+          }
+          setIsStudyMode(prevMode => !prevMode); // Toggle between study and break mode
+        }
+
+        // Cleanup function: Clear the interval when the component unmounts
+        // or when the dependencies (isRunning, timeLeft, isStudyMode, studyDuration) change,
+        // ensuring no memory leaks or multiple intervals running.
+        return () => clearInterval(interval);
+      }, [isRunning, timeLeft, isStudyMode, studyDuration]); // Dependencies: Effect re-runs if these states change
+
+      // useEffect hook to reset the time left when the mode changes or durations are updated
+      useEffect(() => {
+        // Only reset if the timer is not currently running
+        // This prevents altering a session mid-countdown if durations are adjusted
+        if (!isRunning) {
+          setTimeLeft(isStudyMode ? studyDuration * 60 : breakDuration * 60);
+        }
+      }, [isStudyMode, studyDuration, breakDuration, isRunning]); // Added isRunning to dependencies to handle manual reset correctly
+
+      // Function to start the timer
+      const startTimer = () => setIsRunning(true);
+      // Function to pause the timer
+      const pauseTimer = () => setIsRunning(false);
+      // Function to reset the timer to initial study mode settings
+      const resetTimer = () => {
+        setIsRunning(false); // Stop the timer
+        setIsStudyMode(true); // Set mode back to study
+        setTimeLeft(studyDuration * 60); // Reset time to study duration
+        setShowDistractionInput(false); // Hide distraction input if visible
+        setDistractionReason(''); // Clear distraction reason
+      };
+
+      // Utility function to format seconds into MM:SS (Minutes:Seconds) string
+      const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60); // Calculate minutes
+        const remainingSeconds = seconds % 60; // Calculate remaining seconds
+        // Return formatted string, adding leading zeros if numbers are less than 10
+        return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+      };
+
+      // Bow SVG icon component for aesthetic touches
+      const BowIcon = () => (
+        <svg className="w-6 h-6 inline-block mb-1 text-rose-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 12c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 2c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5zM4 12c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm16 0c2.209 0 4-1.791 4-4s-1.791-4-4-4-4 1.791-4 4 1.791 4 4 4z"/>
+        </svg>
+      );
+
+      // Handler for "I got distracted" button click
+      const handleDistractionClick = () => {
+        setIsRunning(false); // Pause the timer
+        setShowDistractionInput(true); // Show the input field for distraction reason
+      };
+
+      // Handler for submitting the distraction reason
+      const handleDistractionSubmit = () => {
+        if (distractionReason.trim()) {
+          setDistractions(prev => [
+            ...prev,
+            {
+              id: Date.now(), // Unique ID for key prop
+              timestamp: new Date().toLocaleString(), // Current date and time
+              reason: distractionReason.trim(), // Trim whitespace from reason
+            }
+          ]);
+          setDistractionReason(''); // Clear the input field
+          setShowDistractionInput(false); // Hide the input field
+        }
+      };
+
+      return (
+        // Main container for the widget, ensuring it's centered on a white background.
+        <div className="min-h-screen bg-white flex items-center justify-center p-4 font-sans antialiased">
+          {/* Widget card with baby pink background, rounded corners, and shadow */}
+          <div className="bg-pink-50 p-6 md:p-8 rounded-3xl shadow-xl max-w-sm w-full border border-pink-200">
+            {/* Header section with a bow icon and title */}
+            <div className="flex flex-col items-center mb-6">
+              <BowIcon /> {/* Render the BowIcon component */}
+              <h1 className="text-3xl md:text-4xl font-bold text-pink-700 text-center mt-2">
+                Pomodoro Timer
+              </h1>
+              <p className="text-pink-500 text-lg mt-1 text-center">Focus & Flourish</p>
+              <div className="w-24 h-1 bg-pink-300 rounded-full mt-3"></div> {/* Decorative line */}
+            </div>
+
+            {/* Timer display section */}
+            <div className="bg-white p-6 rounded-2xl shadow-inner border border-pink-100 mb-6 text-center">
+              <p className="text-pink-600 text-2xl font-semibold mb-2">
+                {isStudyMode ? 'Study Session' : 'Break Time'} {/* Display current mode */}
+              </p>
+              <p className="text-pink-800 text-6xl font-extrabold tracking-tight">
+                {formatTime(timeLeft)} {/* Display formatted time left */}
+              </p>
+            </div>
+
+            {/* Control buttons (Start, Pause, Reset, Distracted) */}
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
               <button
-                onClick={handleDistractionSubmit}
-                className="bg-pink-600 text-white py-2 px-4 rounded-lg font-bold shadow-md hover:bg-pink-700 transition-colors duration-200"
+                onClick={startTimer}
+                disabled={isRunning && timeLeft > 0} // Disable if already running and time left
+                className="bg-rose-500 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-rose-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Log Distraction
+                Start
               </button>
+              <button
+                onClick={pauseTimer}
+                disabled={!isRunning || timeLeft === 0} // Disable if not running or time is 0
+                className="bg-pink-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-pink-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Pause
+              </button>
+              <button
+                onClick={resetTimer}
+                className="bg-fuchsia-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-fuchsia-500 transition-colors duration-200"
+              >
+                Reset
+              </button>
+              {/* "I got distracted" button - only visible during study mode and when running */}
+              {isRunning && isStudyMode && (
+                <button
+                  onClick={handleDistractionClick}
+                  className="bg-purple-400 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-purple-500 transition-colors duration-200"
+                >
+                  I got distracted!
+                </button>
+              )}
+            </div>
+
+            {/* Distraction input field (conditionally rendered) */}
+            {showDistractionInput && (
+              <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
+                <h3 className="text-lg font-semibold text-pink-700 mb-2 text-center">Why did you get distracted?</h3>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    placeholder="E.g., Checked social media, Noticed a noise"
+                    value={distractionReason}
+                    onChange={(e) => setDistractionReason(e.target.value)}
+                    onKeyPress={(e) => { // Allow submitting with Enter key
+                      if (e.key === 'Enter') handleDistractionSubmit();
+                    }}
+                    className="p-3 rounded-lg border border-pink-300 text-pink-800 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  />
+                  <button
+                    onClick={handleDistractionSubmit}
+                    className="bg-pink-600 text-white py-2 px-4 rounded-lg font-bold shadow-md hover:bg-pink-700 transition-colors duration-200"
+                  >
+                    Log Distraction
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Duration settings section */}
+            <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
+              <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Set Durations</h3>
+              <div className="flex flex-col gap-3">
+                {/* Study duration input */}
+                <div className="flex items-center justify-between">
+                  <label htmlFor="studyDuration" className="text-pink-600 font-medium">Study (mins):</label>
+                  <input
+                    id="studyDuration"
+                    type="number"
+                    value={studyDuration}
+                    onChange={(e) => {
+                      const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                      setStudyDuration(val);
+                      if (!isRunning && isStudyMode) setTimeLeft(val * 60);
+                    }}
+                    className="w-24 text-center bg-white border border-pink-300 rounded-lg py-1 px-2 text-pink-800 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                    min="1"
+                  />
+                </div>
+                {/* Break duration input */}
+                <div className="flex items-center justify-between">
+                  <label htmlFor="breakDuration" className="text-pink-600 font-medium">Break (mins):</label>
+                  <input
+                    id="breakDuration"
+                    type="number"
+                    value={breakDuration}
+                    onChange={(e) => {
+                      const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                      setBreakDuration(val);
+                      if (!isRunning && !isStudyMode) setTimeLeft(val * 60);
+                    }}
+                    className="w-24 text-center bg-white border border-pink-300 rounded-lg py-1 px-2 text-pink-800 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                    min="1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* --- Distraction Log --- */}
+            <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
+              <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Distraction Log (This Week)</h3>
+              {distractions.length === 0 ? (
+                <p className="text-pink-500 text-center italic">No distractions logged yet!</p>
+              ) : (
+                <ul className="list-disc list-inside space-y-2 text-pink-700">
+                  {distractions.map((d) => (
+                    <li key={d.id} className="bg-pink-50 p-2 rounded-lg shadow-sm text-sm">
+                      <span className="font-semibold text-pink-600 mr-2">{d.timestamp}:</span> {d.reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* --- Hours Studied Log --- */}
+            <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200">
+              <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Hours Studied (This Week)</h3>
+              <p className="text-pink-800 text-3xl font-bold text-center">
+                {hoursStudied.toFixed(2)} hrs
+              </p>
+              <p className="text-pink-500 text-center mt-1 text-sm italic">Resets every Sunday</p>
+            </div>
+
+
+            {/* Footer with a subtle bow divider */}
+            <div className="flex justify-center mt-6">
+              <div className="w-full max-w-xs h-1 bg-pink-200 rounded-full relative">
+                {/* Small decorative bows positioned on the divider */}
+                <div className="absolute -top-2 left-1/4 transform -translate-x-1/2">
+                  <BowIcon />
+                </div>
+                <div className="absolute -top-2 right-1/4 transform translate-x-1/2">
+                  <BowIcon />
+                </div>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Duration settings section */}
-        <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
-          <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Set Durations</h3>
-          <div className="flex flex-col gap-3">
-            {/* Study duration input */}
-            <div className="flex items-center justify-between">
-              <label htmlFor="studyDuration" className="text-pink-600 font-medium">Study (mins):</label>
-              <input
-                id="studyDuration"
-                type="number"
-                value={studyDuration}
-                onChange={(e) => {
-                  const val = Math.max(1, parseInt(e.target.value, 10) || 1);
-                  setStudyDuration(val);
-                  if (!isRunning && isStudyMode) setTimeLeft(val * 60);
-                }}
-                className="w-24 text-center bg-white border border-pink-300 rounded-lg py-1 px-2 text-pink-800 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                min="1"
-              />
-            </div>
-            {/* Break duration input */}
-            <div className="flex items-center justify-between">
-              <label htmlFor="breakDuration" className="text-pink-600 font-medium">Break (mins):</label>
-              <input
-                id="breakDuration"
-                type="number"
-                value={breakDuration}
-                onChange={(e) => {
-                  const val = Math.max(1, parseInt(e.target.value, 10) || 1);
-                  setBreakDuration(val);
-                  if (!isRunning && !isStudyMode) setTimeLeft(val * 60);
-                }}
-                className="w-24 text-center bg-white border border-pink-300 rounded-lg py-1 px-2 text-pink-800 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                min="1"
-              />
-            </div>
-          </div>
         </div>
+      );
+    };
 
-        {/* --- Distraction Log --- */}
-        <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200 mb-6">
-          <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Distraction Log (This Week)</h3>
-          {distractions.length === 0 ? (
-            <p className="text-pink-500 text-center italic">No distractions logged yet!</p>
-          ) : (
-            <ul className="list-disc list-inside space-y-2 text-pink-700">
-              {distractions.map((d) => (
-                <li key={d.id} className="bg-pink-50 p-2 rounded-lg shadow-sm text-sm">
-                  <span className="font-semibold text-pink-600 mr-2">{d.timestamp}:</span> {d.reason}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* --- Hours Studied Log --- */}
-        <div className="bg-pink-100 p-4 rounded-xl shadow-inner border border-pink-200">
-          <h3 className="text-xl font-semibold text-pink-700 mb-3 text-center">Hours Studied (This Week)</h3>
-          <p className="text-pink-800 text-3xl font-bold text-center">
-            {hoursStudied.toFixed(2)} hrs
-          </p>
-          <p className="text-pink-500 text-center mt-1 text-sm italic">Resets every Sunday</p>
-        </div>
-
-
-        {/* Footer with a subtle bow divider */}
-        <div className="flex justify-center mt-6">
-          <div className="w-full max-w-xs h-1 bg-pink-200 rounded-full relative">
-            {/* Small decorative bows positioned on the divider */}
-            <div className="absolute -top-2 left-1/4 transform -translate-x-1/2">
-              <BowIcon />
-            </div>
-            <div className="absolute -top-2 right-1/4 transform translate-x-1/2">
-              <BowIcon />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default App;
+    // Render the App component into the root element
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
